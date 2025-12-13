@@ -1,8 +1,10 @@
 {
 	"tasks": {
+		"format": "deno run -A @biomejs/biome format --write; deno run -A @biomejs/biome lint --write",
 		"dev": "deno run --watch --env-file=.env -INE src/app.ts"
 	},
 	"imports": {
+		"@biomejs/biome": "npm:@biomejs/biome@2.3.8",
 		"grammy": "https://deno.land/x/grammy@v1.38.3/mod.ts"
 	}
 }
