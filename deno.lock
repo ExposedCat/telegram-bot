@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@grammyjs/debug@~0.2.1": "0.2.1",
     "jsr:@std/internal@^1.0.10": "1.0.12",
     "jsr:@std/path@1.1.2": "1.1.2",
     "npm:@biomejs/biome@*": "2.3.8",
@@ -10,6 +11,9 @@
     "npm:typebox@^1.0.62": "1.0.62"
   },
   "jsr": {
+    "@grammyjs/debug@0.2.1": {
+      "integrity": "4534e0008be90370abfb6658914a7369e5caccb0a80a570875e281c9efa447ec"
+    },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
     },
@@ -284,6 +288,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@grammyjs/debug@~0.2.1",
       "npm:@biomejs/biome@2.3.8",
       "npm:lefthook@^2.0.11",
       "npm:mongodb@7",

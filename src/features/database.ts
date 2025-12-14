@@ -1,28 +1,30 @@
-import { type Collection, type Db, type Document, MongoClient } from "mongodb";
-import type { Chat } from "./chat.ts";
+import { type Collection, type Db, MongoClient } from "mongodb";
+import type { Static, TObject } from "typebox";
+import { type Chat, chatSchema } from "./chat.ts";
 
 export type Database = {
 	chat: Collection<Chat>;
 };
 
-async function ensureCollection<T extends Document>(
+async function ensureCollection<T extends TObject>(
 	database: Db,
 	name: string,
-): Promise<Collection<T>> {
+	schema: T,
+): Promise<Collection<Static<T>>> {
 	const exists = await database.listCollections({ name }).hasNext();
 	if (exists) {
-		return database.collection<T>(name);
+		return database.collection<Static<T>>(name);
 	}
 
-	return database.createCollection<T>(name, {
+	return database.createCollection<Static<T>>(name, {
 		validator: {
-			$jsonSchema: {},
+			$jsonSchema: schema,
 		},
 	});
 }
 
 export function initDatabase() {
-	const uri = Deno.env.get("DB_");
+	const uri = Deno.env.get("MONGODB_URI");
 	if (!uri) {
 		throw new Error("MONGODB_URI is not set");
 	}
@@ -33,7 +35,7 @@ export function initDatabase() {
 		await client.connect();
 
 		const db = client.db();
-		const chat = await ensureCollection<Chat>(db, "chat");
+		const chat = await ensureCollection(db, "chat", chatSchema);
 		const database: Database = { chat };
 
 		return database;
