@@ -1,7 +1,7 @@
 {
 	"tasks": {
 		"format": "deno run -A @biomejs/biome format --write; deno run -A @biomejs/biome lint --write",
-		"dev": "deno run --watch --env-file=.env -INERS src/app.ts",
+		"dev": "./dev.sh",
 		"check": "deno run -A @biomejs/biome check"
 	},
 	"imports": {
