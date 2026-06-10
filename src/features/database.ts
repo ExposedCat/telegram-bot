@@ -1,43 +1,40 @@
-import { type Collection, type Db, MongoClient } from "mongodb";
-import type { Static, TObject } from "typebox";
-import { type Chat, chatSchema } from "./chat.ts";
+import { Database as SQLiteDatabase } from "@db/sqlite";
+import { type ColumnType, Kysely, sql } from "@kysely/kysely";
+import { DenoSqlite3Dialect } from "@marshift/kysely-deno-sqlite3";
 
-export type Database = {
-	chat: Collection<Chat>;
+type ReadonlyColumn<T> = ColumnType<T, T, never>;
+
+export type DatabaseSchema = {
+	chats: {
+		id: ReadonlyColumn<number>;
+	};
 };
 
-async function ensureCollection<T extends TObject>(
-	database: Db,
-	name: string,
-	schema: T,
-): Promise<Collection<Static<T>>> {
-	const exists = await database.listCollections({ name }).hasNext();
-	if (exists) {
-		return database.collection<Static<T>>(name);
-	}
+export type Database = Kysely<DatabaseSchema>;
 
-	return database.createCollection<Static<T>>(name, {
-		validator: {
-			$jsonSchema: schema,
-		},
-	});
+async function migrate(database: Database) {
+	await sql`PRAGMA foreign_keys = ON`.execute(database);
+	await sql`PRAGMA journal_mode = WAL`.execute(database);
+
+	await database.schema
+		.createTable("chats")
+		.ifNotExists()
+		.addColumn("id", "integer", (column) => column.primaryKey())
+		.execute();
 }
 
 export function initDatabase() {
-	const uri = Deno.env.get("MONGODB_URI");
-	if (!uri) {
-		throw new Error("MONGODB_URI is not set");
-	}
-
-	const client = new MongoClient(uri);
-
 	const connect = async (): Promise<Database> => {
-		await client.connect();
+		const database = new Kysely<DatabaseSchema>({
+			dialect: new DenoSqlite3Dialect({
+				database: new SQLiteDatabase(
+					Deno.env.get("SQLITE_PATH") ?? "telegram-bot.sqlite",
+					{ int64: true },
+				),
+			}),
+		});
 
-		const db = client.db();
-		const chat = await ensureCollection(db, "chat", chatSchema);
-		const database: Database = { chat };
-
+		await migrate(database);
 		return database;
 	};
 
